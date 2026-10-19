@@ -1,0 +1,83 @@
+{
+  "name": "ai-research-assistant",
+  "version": "0.1.0",
+  "description": "Local-first AI research assistant with evidence-grounded reports and active monitoring.",
+  "author": "AI Research Assistant contributors",
+  "private": true,
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "workspaces": [
+    "vendor/sign-in-with-chatgpt-devkit/packages/local",
+    "vendor/sign-in-with-chatgpt-devkit/packages/react"
+  ],
+  "scripts": {
+    "install:electron": "install-electron",
+    "build:devkit": "npm run build -w @siwc/local && npm run build -w @siwc/react",
+    "build:renderer": "vite build",
+    "build:electron": "esbuild ./electron/main.ts --bundle --platform=node --format=esm --packages=external --external:electron --outfile=./dist-electron/main.js && esbuild ./electron/preload.ts --bundle --platform=node --format=cjs --packages=external --external:electron --outfile=./dist-electron/preload.cjs",
+    "build": "npm run build:devkit && npm run build:renderer && npm run build:electron",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.electron.json",
+    "test": "vitest run",
+    "eval:task-routing": "vitest run tests/evaluation/task-routing.eval.test.ts --reporter=verbose",
+    "eval:source-ranking": "vitest run tests/evaluation/source-ranking.eval.test.ts --reporter=verbose",
+    "eval:numeric-grounding": "vitest run tests/evaluation/numeric-grounding.eval.test.ts --reporter=verbose",
+    "check": "npm run typecheck && npm test && npm run build",
+    "start": "npm run build && node scripts/start-electron.mjs",
+    "package:win": "npm run check && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@siwc/local": "0.1.0",
+    "@siwc/react": "0.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.0",
+    "electron": "42.11.4",
+    "electron-builder": "^26.15.3",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "4.1.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "build": {
+    "appId": "com.localfirst.airesearchassistant",
+    "productName": "AI Research Assistant",
+    "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "AI-Research-Assistant-${version}-Setup-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AI Research Assistant",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

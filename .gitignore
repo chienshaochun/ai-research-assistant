@@ -1,0 +1,25 @@
+node_modules/
+dist/
+dist-electron/
+release/
+coverage/
+.vite/
+.vitest/
+
+*.log
+npm-debug.log*
+
+.env
+.env.*
+!.env.example
+
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+
+# Protect local OAuth state if AI_RESEARCH_ASSISTANT_DATA_DIR points at the project.
+chatgpt/
+.local-data/
+
+*.md.tmp
