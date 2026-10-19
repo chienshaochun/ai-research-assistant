@@ -6,6 +6,8 @@ const shownTime = (value: string | null) => value
     .format(new Date(value))
   : '';
 
+const MONITORING_PAGE_SIZE = 10;
+
 export function MonitoringPanel({ monitoring, launchAtLogin, call }: {
   monitoring: PublicMonitoringState;
   launchAtLogin: boolean;
@@ -94,11 +96,34 @@ function MonitoringInbox({ monitoring, call }: {
   monitoring: PublicMonitoringState;
   call: (action: () => Promise<void>) => Promise<void>;
 }) {
+  const [inboxPage, setInboxPage] = useState(0);
+  const [processedPage, setProcessedPage] = useState(0);
+  const inboxPageCount = Math.max(
+    1, Math.ceil(monitoring.inbox.length / MONITORING_PAGE_SIZE),
+  );
+  const processedPageCount = Math.max(
+    1, Math.ceil(monitoring.processedInbox.length / MONITORING_PAGE_SIZE),
+  );
+  const visibleInboxPage = Math.min(inboxPage, inboxPageCount - 1);
+  const visibleProcessedPage = Math.min(processedPage, processedPageCount - 1);
+  const visibleInbox = monitoring.inbox.slice(
+    visibleInboxPage * MONITORING_PAGE_SIZE,
+    (visibleInboxPage + 1) * MONITORING_PAGE_SIZE,
+  );
+  const visibleProcessed = monitoring.processedInbox.slice(
+    visibleProcessedPage * MONITORING_PAGE_SIZE,
+    (visibleProcessedPage + 1) * MONITORING_PAGE_SIZE,
+  );
+  useEffect(() => setInboxPage((page) => Math.min(page, inboxPageCount - 1)), [inboxPageCount]);
+  useEffect(() => setProcessedPage(
+    (page) => Math.min(page, processedPageCount - 1),
+  ), [processedPageCount]);
+
   return <div className="source-list monitoring-inbox">
     <span>新技術收件匣（{monitoring.inbox.length}）</span>
     <small className="muted">回饋不會移除文章；再次點選已選取的回饋可取消。已讀或忽略的文章可在下方還原。</small>
     {monitoring.inbox.length === 0 ? <p className="muted">尚未發現未讀的新來源。</p>
-      : monitoring.inbox.map((item) => <div className="evidence-source-card"
+      : visibleInbox.map((item) => <div className="evidence-source-card"
         key={`${item.ruleId}:${item.sourceId}`}>
         <button className="source-button" type="button"
           onClick={() => call(() => window.researchAssistant.openSource(item.candidate.url))}>
@@ -148,11 +173,14 @@ function MonitoringInbox({ monitoring, call }: {
             忽略</button>
         </div>
       </div>)}
+    <InboxPagination label="新技術收件匣" page={visibleInboxPage}
+      pageCount={inboxPageCount} itemCount={monitoring.inbox.length}
+      onPageChange={setInboxPage} />
     {monitoring.processedInbox.length > 0 && <details className="processed-inbox">
       <summary>已處理項目（{monitoring.processedInbox.length}）</summary>
       <p className="muted">已讀與忽略只會離開主要收件匣，不會刪除資料。</p>
       <div className="history-list">
-        {monitoring.processedInbox.map((item) => <div className="processed-inbox-item"
+        {visibleProcessed.map((item) => <div className="processed-inbox-item"
           key={`${item.ruleId}:${item.sourceId}`}>
           <button className="source-button" type="button"
             onClick={() => call(() => window.researchAssistant.openSource(item.candidate.url))}>
@@ -166,6 +194,26 @@ function MonitoringInbox({ monitoring, call }: {
             ))}>還原至收件匣</button>
         </div>)}
       </div>
+      <InboxPagination label="已處理項目" page={visibleProcessedPage}
+        pageCount={processedPageCount} itemCount={monitoring.processedInbox.length}
+        onPageChange={setProcessedPage} />
     </details>}
   </div>;
+}
+
+function InboxPagination({ label, page, pageCount, itemCount, onPageChange }: {
+  label: string;
+  page: number;
+  pageCount: number;
+  itemCount: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (pageCount <= 1) return null;
+  return <nav className="inbox-pagination" aria-label={`${label}分頁`}>
+    <button className="secondary-button" type="button" disabled={page === 0}
+      onClick={() => onPageChange(page - 1)}>上一頁</button>
+    <span>第 {page + 1} / {pageCount} 頁 · 共 {itemCount} 項</span>
+    <button className="secondary-button" type="button" disabled={page === pageCount - 1}
+      onClick={() => onPageChange(page + 1)}>下一頁</button>
+  </nav>;
 }

@@ -63,6 +63,9 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .processed-inbox > summary { cursor: pointer; color: #405347; font-weight: 700; }
 .processed-inbox-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .processed-inbox-item .secondary-button { white-space: nowrap; }
+.inbox-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 0; }
+.inbox-pagination span { color: #657369; font-size: .8rem; }
+.inbox-pagination .secondary-button { min-width: 76px; }
 .monitor-run-history { margin-top: 16px; }
 .monitor-run-history .history-list { margin-top: 9px; }
 .inbox-actions { display: flex; gap: 8px; padding: 0 10px 10px; }
