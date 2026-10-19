@@ -1793,15 +1793,15 @@ export class ResearchStore {
   setMonitoringItemFeedback(
     ruleId: string,
     sourceId: string,
-    feedback: MonitoringFeedback,
+    feedback: MonitoringFeedback | null,
     feedbackAt = new Date().toISOString(),
   ): void {
     const rule = this.getMonitoringRule(ruleId);
     if (!rule) throw new Error(`找不到監測規則 ${ruleId}。`);
     const id = requiredString(sourceId, '監測來源 ID');
     if (!/^src_[a-f0-9]{20}$/.test(id)) throw new Error('監測來源 ID 格式無效。');
-    const value = validateMonitoringFeedback(feedback);
-    const timestamp = validMonitoringTime(feedbackAt, '監測回饋時間');
+    const value = feedback === null ? null : validateMonitoringFeedback(feedback);
+    const timestamp = value === null ? null : validMonitoringTime(feedbackAt, '監測回饋時間');
     const result = this.database.prepare(`
       UPDATE monitoring_items SET feedback = ?, feedback_at = ?
       WHERE rule_id = ? AND source_id = ?

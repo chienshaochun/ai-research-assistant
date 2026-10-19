@@ -248,6 +248,11 @@ describe('ResearchStore', () => {
         feedbackAt: '2026-10-04T01:04:45.000Z',
       }),
     ]);
+    restarted.setMonitoringItemFeedback(rule.id, candidate.id, null);
+    expect(restarted.getMonitoringInboxItem(rule.id, candidate.id)).toMatchObject({
+      feedback: null,
+      feedbackAt: null,
+    });
     expect(restarted.listPendingMonitoringDigest(rule.id)).toHaveLength(1);
     restarted.markMonitoringDigestDelivered(
       rule.id, [candidate.id], '2026-10-04T09:00:00.000Z',
@@ -268,6 +273,8 @@ describe('ResearchStore', () => {
     restarted.setMonitoringItemStatus(rule.id, candidate.id, 'read');
     expect(restarted.listMonitoringInbox(rule.id)).toEqual([]);
     expect(restarted.listMonitoringInbox(rule.id, 'read')).toHaveLength(1);
+    restarted.setMonitoringItemStatus(rule.id, candidate.id, 'new');
+    expect(restarted.listMonitoringInbox(rule.id)).toHaveLength(1);
     expect(restarted.listDueMonitoringRules('2026-10-05T01:04:59.999Z')).toEqual([]);
     expect(restarted.listDueMonitoringRules('2026-10-05T01:05:00.000Z')).toHaveLength(1);
     restarted.close();

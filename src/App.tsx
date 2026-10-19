@@ -11,7 +11,8 @@ const initialState: AppState = {
   research: { status: 'idle', command: '', message: '' },
   preferences: {}, reportHistory: [], attemptHistory: [],
   monitoring: {
-    status: 'idle', message: '背景監測尚未設定。', rules: [], inbox: [], runs: [],
+    status: 'idle', message: '背景監測尚未設定。', rules: [], inbox: [],
+    processedInbox: [], runs: [],
   },
   launchAtLogin: false,
   dataDirectory: '',

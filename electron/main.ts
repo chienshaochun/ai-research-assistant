@@ -135,7 +135,8 @@ let state: AppState = {
   reportHistory: [],
   attemptHistory: [],
   monitoring: {
-    status: 'idle', message: '背景監測尚未設定。', rules: [], inbox: [], runs: [],
+    status: 'idle', message: '背景監測尚未設定。', rules: [], inbox: [],
+    processedInbox: [], runs: [],
   },
   launchAtLogin: false,
   dataDirectory: app.getPath('userData'),
@@ -176,8 +177,16 @@ function refreshMonitoringState(
 ): void {
   if (!researchStore) return;
   const rules = researchStore.listMonitoringRules();
+  const processedInbox: PublicMonitoringInboxItem[] = [];
   const inbox = rules.flatMap((rule) => {
     const history = researchStore!.listAllMonitoringInbox(rule.id);
+    processedInbox.push(...history
+      .filter(({ status: itemStatus }) => itemStatus !== 'new')
+      .map((item) => ({
+        ...item,
+        rankingScore: 0,
+        rankingReasons: [],
+      })));
     return rankMonitoringItems(
       rule,
       history.filter(({ status: itemStatus }) => itemStatus === 'new'),
@@ -197,6 +206,9 @@ function refreshMonitoringState(
         : `已設定 ${rules.length} 個監測規則；目前有 ${inbox.length} 項未讀新技術。`),
       rules,
       inbox,
+      processedInbox: processedInbox
+        .sort((left, right) => right.firstSeenAt.localeCompare(left.firstSeenAt))
+        .slice(0, 50),
       runs: researchStore.listMonitoringRuns(),
       ...(error ? { error } : {}),
     },
@@ -988,12 +1000,11 @@ function setMonitoringItemFeedback(
   feedback: unknown,
 ): void {
   if (!researchStore) throw new Error('本機研究資料庫尚未就緒。');
-  researchStore.setMonitoringItemFeedback(
-    ruleId,
-    sourceId,
-    validateMonitoringFeedback(feedback),
-  );
-  refreshMonitoringState('idle', '已保存你的明確回饋；後續候選會使用可解釋規則重新排序。');
+  const value = feedback === null ? null : validateMonitoringFeedback(feedback);
+  researchStore.setMonitoringItemFeedback(ruleId, sourceId, value);
+  refreshMonitoringState('idle', value === null
+    ? '已取消這項回饋。'
+    : '已保存你的明確回饋；後續候選會使用可解釋規則重新排序。');
   publish();
 }
 

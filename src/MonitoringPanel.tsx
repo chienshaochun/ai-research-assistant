@@ -96,6 +96,7 @@ function MonitoringInbox({ monitoring, call }: {
 }) {
   return <div className="source-list monitoring-inbox">
     <span>新技術收件匣（{monitoring.inbox.length}）</span>
+    <small className="muted">回饋不會移除文章；再次點選已選取的回饋可取消。已讀或忽略的文章可在下方還原。</small>
     {monitoring.inbox.length === 0 ? <p className="muted">尚未發現未讀的新來源。</p>
       : monitoring.inbox.map((item) => <div className="evidence-source-card"
         key={`${item.ruleId}:${item.sourceId}`}>
@@ -130,7 +131,7 @@ function MonitoringInbox({ monitoring, call }: {
             aria-pressed={item.feedback === value}
             key={value}
             onClick={() => call(() => window.researchAssistant.setMonitoringItemFeedback(
-              item.ruleId, item.sourceId, value,
+              item.ruleId, item.sourceId, item.feedback === value ? null : value,
             ))}>{label}</button>)}
         </div>
         <div className="inbox-actions">
@@ -147,5 +148,24 @@ function MonitoringInbox({ monitoring, call }: {
             忽略</button>
         </div>
       </div>)}
+    {monitoring.processedInbox.length > 0 && <details className="processed-inbox">
+      <summary>已處理項目（{monitoring.processedInbox.length}）</summary>
+      <p className="muted">已讀與忽略只會離開主要收件匣，不會刪除資料。</p>
+      <div className="history-list">
+        {monitoring.processedInbox.map((item) => <div className="processed-inbox-item"
+          key={`${item.ruleId}:${item.sourceId}`}>
+          <button className="source-button" type="button"
+            onClick={() => call(() => window.researchAssistant.openSource(item.candidate.url))}>
+            <strong>{item.candidate.title}</strong>
+            <small>{item.status === 'dismissed' ? '已忽略' : '已讀'} · {
+              item.candidate.publishedDate ?? '日期未知'}</small>
+          </button>
+          <button className="secondary-button" type="button" onClick={() => call(() =>
+            window.researchAssistant.setMonitoringItemStatus(
+              item.ruleId, item.sourceId, 'new',
+            ))}>還原至收件匣</button>
+        </div>)}
+      </div>
+    </details>}
   </div>;
 }

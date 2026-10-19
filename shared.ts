@@ -309,6 +309,7 @@ export interface PublicMonitoringState {
   message: string;
   rules: PublicMonitoringRule[];
   inbox: PublicMonitoringInboxItem[];
+  processedInbox: PublicMonitoringInboxItem[];
   runs: PublicMonitoringRun[];
   error?: PublicError;
 }
@@ -365,7 +366,7 @@ export interface ResearchAssistantBridge {
   setMonitoringItemFeedback(
     ruleId: string,
     sourceId: string,
-    feedback: NonNullable<PublicMonitoringInboxItem['feedback']>,
+    feedback: PublicMonitoringInboxItem['feedback'],
   ): Promise<void>;
   researchMonitoringItem(ruleId: string, sourceId: string, modelSlug?: string): Promise<void>;
   setLaunchAtLogin(enabled: boolean): Promise<void>;
